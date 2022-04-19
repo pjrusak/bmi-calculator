@@ -1,20 +1,30 @@
 pipeline {
-    agent none
+	agent any
 
     stages {
         stage('npm install') {
+			agent {
+				docker {
+					image 'node:16.13.1-alpine'
+				}
+			}
             steps {
-	        echo 'npm install'
+				echo 'Installing nodejs modules'
+				sh '''
+					npm version
+					npm install
+				'''
+				
             }
         }
         stage('build app'){
             steps {
-	        echo 'building application'
+				echo 'building application'
             }
         }
         stage('unit tests'){
             steps {
-	        echo 'running unit tests'
+				echo 'running unit tests'
             }
         }
     }
