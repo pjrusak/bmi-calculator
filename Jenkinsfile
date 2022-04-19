@@ -18,7 +18,12 @@ pipeline {
         stage('unit tests'){
             steps {
                 echo 'Running UTs...'
-                sh 'npm run test -- --coverage'
+                sh '''
+                    CI=true npm run test -- --coverage \
+                        --watchAll=false --ci \
+                        --reporters=default --reporters=jest-junit \
+                        --coverageReporters=cobertura
+                '''
             }
         }
     }
