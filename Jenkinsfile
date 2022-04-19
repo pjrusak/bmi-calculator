@@ -9,7 +9,7 @@ pipeline {
                 }
             }
             steps {
-                echo 'Installing nodejs modules'
+                echo 'Installing nodejs modules...'
                 sh '''
                     npm version
                     npm install
@@ -18,12 +18,14 @@ pipeline {
         }
         stage('build app'){
             steps {
-                echo 'building application'
+                echo 'Building nodejs application...'
+                sh 'npm build'
             }
         }
         stage('unit tests'){
             steps {
-                echo 'running unit tests'
+                echo 'Running UTs...'
+                sh 'npm test'
             }
         }
     }
