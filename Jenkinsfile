@@ -18,7 +18,7 @@ pipeline {
         stage('unit tests'){
             steps {
                 echo 'Running UTs...'
-                sh 'npm test'
+                sh 'npm run test -- --coverage'
             }
         }
     }
