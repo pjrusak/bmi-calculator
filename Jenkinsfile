@@ -21,7 +21,7 @@ pipeline {
                 sh '''
                     CI=true npm run test -- --coverage \
                         --watchAll=false --ci \
-                        --reporters=default --reporters=jest-junit \
+                        --reporters=default \
                         --coverageReporters=cobertura
                 '''
             }
