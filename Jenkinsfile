@@ -1,12 +1,13 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:16.13.1-alpine'
-        }
-    }
+    agent none
 
     stages {
         stage('install dependencies') {
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                }
+            }
             steps {
                 echo 'Building nodejs app...'
                 sh '''
@@ -16,6 +17,12 @@ pipeline {
             }
         }
         stage('unit tests'){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 echo 'Running UTs...'
                 sh '''
@@ -40,11 +47,24 @@ pipeline {
             }
         }
         stage('build') {
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 echo 'Building application...'
                 sh '''
                     npm run build
                 '''
+                zip zipFile: 'build.zip', archive: false, dir: './build'
+                stash name: 'app-build-stash', allowEmpty: false, includes: 'build.zip'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'build.zip', fingerprint: true
+                }
             }
         }
     }
