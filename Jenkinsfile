@@ -6,7 +6,7 @@ pipeline {
     }
 
     stages {
-        stage('build') {
+        stage('install dependencies') {
             steps {
                 echo 'Building nodejs app...'
                 sh '''
@@ -25,19 +25,31 @@ pipeline {
                         --coverageReporters=cobertura
                 '''
             }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'coverage/*.*', followSymlinks: false,
+                        fingerprint: true
+                    cobertura autoUpdateHealth: false, autoUpdateStability: false,
+                        coberturaReportFile: 'coverage/cobertura-coverage.xml',
+                        conditionalCoverageTargets: '70, 0, 0', failNoReports: false,
+                        failUnhealthy: false, failUnstable: false,
+                        lineCoverageTargets: '70, 0, 0', maxNumberOfBuilds: 0,
+                        methodCoverageTargets: '70, 0, 0', onlyStable: false,
+                        sourceEncoding: 'ASCII'
+                }
+            }
+        }
+        stage('build') {
+            steps {
+                echo 'Building application...'
+                sh '''
+                    npm run build
+                '''
+            }
         }
     }
     post {
-        always {
-            archiveArtifacts artifacts: 'coverage/*.*', followSymlinks: false,
-                fingerprint: true
-            cobertura autoUpdateHealth: false, autoUpdateStability: false,
-                coberturaReportFile: 'coverage/cobertura-coverage.xml',
-                conditionalCoverageTargets: '70, 0, 0', failNoReports: false,
-                failUnhealthy: false, failUnstable: false,
-                lineCoverageTargets: '70, 0, 0', maxNumberOfBuilds: 0,
-                methodCoverageTargets: '70, 0, 0', onlyStable: false,
-                sourceEncoding: 'ASCII'
+        cleanup {
             cleanWs()
         }
     }
