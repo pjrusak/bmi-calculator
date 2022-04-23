@@ -47,6 +47,8 @@ pipeline {
                 '''
                 zip zipFile: 'build.zip', archive: false, dir: './build'
                 stash name: 'app-build-stash', allowEmpty: false, includes: 'build.zip'
+                slackSend channel: "#channel-name", failOnError: false, 
+                    message: "Build ${env.JOB_NAME} ${env.BUILD_NUMBER} stashed."
             }
             post {
                 success {
