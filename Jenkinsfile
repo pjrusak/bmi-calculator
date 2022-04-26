@@ -56,15 +56,30 @@ pipeline {
                 }
             }
         }
-        stage('unstash') {
+        stage('build docker') {
+            agent any
+
             steps {
-                echo 'Testing unstash feature...'
-                sh 'ls -la'
                 dir('app-build-stash') {
                     unstash 'app-build-stash'
-                    sh 'ls -la'
+                    unzip 'build.zip'
+                    sh 'rm -f build.zip'
                 }
-                sh 'ls -la'
+                script {
+                    def dockerfile = """\
+                        FROM nginx:1.21.6-alpine
+                        USER nginx
+                        COPY --chown=nginx:nginx ./app-build-stash /usr/share/nginx/html
+                        EXPOSE 80
+                        CMD ["nginx", "-g", "daemon off;"]
+                    """.stripIndent()
+                    writeFile(file: 'Dockerfile', text: dockerfile)
+
+                    docker.withRegistry('https://registry.hub.docker.com', 'cicd-docker-registry') {
+                        def webAppImage = docker.build('calculator-bmi', '-f Dockerfile .')
+                        webAppImage.push()
+                    }
+                }
             }
         }
     }
