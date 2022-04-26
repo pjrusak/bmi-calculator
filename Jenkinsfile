@@ -47,6 +47,7 @@ pipeline {
                 '''
                 zip zipFile: 'build.zip', archive: false, dir: './build'
                 stash name: 'app-build-stash', allowEmpty: false, includes: 'build.zip'
+                stash name: 'dockerfile', allowEmpty: false, includes: './Dockerfile'
                 slackSend channel: "#channel-name", failOnError: false, 
                     message: "Build ${env.JOB_NAME} ${env.BUILD_NUMBER} stashed."
             }
@@ -65,6 +66,7 @@ pipeline {
                     unzip 'build.zip'
                     sh 'rm -f build.zip'
                 }
+                unstash 'dockerfile'
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', 'cicd-docker-registry') {
                         def webAppImage = docker.build('calculator-bmi', "--build-arg webApp=app-build-stash", '-f Dockerfile .')
