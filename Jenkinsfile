@@ -66,17 +66,8 @@ pipeline {
                     sh 'rm -f build.zip'
                 }
                 script {
-                    def dockerfile = """\
-                        FROM nginx:1.21.6-alpine
-                        USER nginx
-                        COPY --chown=nginx:nginx ./app-build-stash /usr/share/nginx/html
-                        EXPOSE 80
-                        CMD ["nginx", "-g", "daemon off;"]
-                    """.stripIndent()
-                    writeFile(file: 'Dockerfile', text: dockerfile)
-
                     docker.withRegistry('https://registry.hub.docker.com', 'cicd-docker-registry') {
-                        def webAppImage = docker.build('calculator-bmi', '-f Dockerfile .')
+                        def webAppImage = docker.build('calculator-bmi', "--build-arg webApp=app-build-stash", '-f Dockerfile .')
                         webAppImage.push()
                     }
                 }
