@@ -61,7 +61,7 @@ pipeline {
                 sh '''
                     npm run build
                 '''
-                zip zipFile: 'build.zip', archive: false, dir: './build'
+                zip zipFile: 'build.zip', archive: false, dir: './build', overwrite: true
                 echo 'Stash build artifact...'
                 stash name: 'app-build-stash', allowEmpty: false, includes: 'build.zip'
                 echo 'Stash Dockerfile...'
