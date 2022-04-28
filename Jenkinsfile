@@ -1,12 +1,16 @@
+def nodeImage = 'node:16.13.1-alpine'
+
 pipeline {
-    agent {
-        docker {
-            image 'node:16.13.1-alpine'
-        }
-    }
+    agent any
 
     stages {
         stage('install dependencies') {
+            agent {
+                docker {
+                    image nodeImage
+                }
+            }
+
             steps {
                 echo 'Building nodejs app...'
                 sh '''
@@ -16,6 +20,12 @@ pipeline {
             }
         }
         stage('unit tests'){
+            agent {
+                docker {
+                    image nodeImage
+                }
+            }
+
             steps {
                 echo 'Running UTs...'
                 sh '''
@@ -40,6 +50,12 @@ pipeline {
             }
         }
         stage('build') {
+            agent {
+                docker {
+                    image nodeImage
+                }
+            }
+
             steps {
                 echo 'Building application...'
                 sh '''
@@ -60,7 +76,12 @@ pipeline {
             }
         }
         stage('build docker') {
-            agent any
+            agent {
+                docker {
+                    image 'docker:dind'
+                    args '-u 0:0 -v /var/run/docker.sock:/var/run/docker.sock:z'
+                }
+            }
 
             steps {
                 dir('app-build-stash') {
@@ -71,7 +92,7 @@ pipeline {
                 unstash 'dockerfile'
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', 'cicd-docker-registry') {
-                        def webAppImage = docker.build('calculator-bmi', "--build-arg webApp=app-build-stash", '-f Dockerfile .')
+                        def webAppImage = docker.build('pjrusak/calculator-bmi', '--build-arg webApp=app-build-stash -f Dockerfile .')
                         webAppImage.push()
                     }
                 }
