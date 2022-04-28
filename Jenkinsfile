@@ -46,8 +46,10 @@ pipeline {
                     npm run build
                 '''
                 zip zipFile: 'build.zip', archive: false, dir: './build'
+                echo 'Stash build artifact...'
                 stash name: 'app-build-stash', allowEmpty: false, includes: 'build.zip'
-                stash name: 'dockerfile', allowEmpty: false, includes: './Dockerfile'
+                echo 'Stash Dockerfile...'
+                stash name: 'dockerfile', allowEmpty: false, includes: 'Dockerfile'
                 slackSend channel: "#channel-name", failOnError: false, 
                     message: "Build ${env.JOB_NAME} ${env.BUILD_NUMBER} stashed."
             }
