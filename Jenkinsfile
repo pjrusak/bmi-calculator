@@ -75,7 +75,7 @@ pipeline {
                 }
             }
         }
-        stage('build docker') {
+        stage('build container') {
             agent {
                 docker {
                     image 'docker:dind'
@@ -91,8 +91,35 @@ pipeline {
                 }
                 unstash 'dockerfile'
                 script {
+                    def webAppImage = docker.build('pjrusak/calculator-bmi', '--build-arg webApp=app-build-stash -f Dockerfile .')
+                }
+            }
+        }
+        stage('scan container') {
+            agent {
+                docker {
+                    image 'aquasec/trivy:latest'
+                    args '-u 0:0 --entrypoint= -v /var/run/docker.sock:/var/run/docker.sock:z'
+                }
+            }
+
+            steps {
+                sh 'trivy --version'
+                sh 'trivy image pjrusak/calculator-bmi'
+            }
+        }
+        stage('push container') {
+            agent {
+                docker {
+                    image 'docker:dind'
+                    args '-u 0:0 -v /var/run/docker.sock:/var/run/docker.sock:z'
+                }
+            }
+
+            steps {
+                script {
+                    def webAppImage = docker.image('pjrusak/calculator-bmi')
                     docker.withRegistry('https://registry.hub.docker.com', 'cicd-docker-registry') {
-                        def webAppImage = docker.build('pjrusak/calculator-bmi', '--build-arg webApp=app-build-stash -f Dockerfile .')
                         webAppImage.push()
                     }
                 }
